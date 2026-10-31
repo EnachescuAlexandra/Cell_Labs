@@ -1,0 +1,42 @@
+
+{
+  "automaton": {
+    "name": "Game of Life",
+    "width": 5,
+    "height": 5,
+    "states": ["DEAD", "ALIVE"],
+    "neighborhood": "moore",
+    "boundary": "fixed",
+    "default": "keep",
+    "rules": [
+      {
+        "from": "DEAD",
+        "to": "ALIVE",
+        "conditions": [
+          {"state": "ALIVE", "operator": "==", "value": 3}
+        ]
+      },
+      {
+        "from": "ALIVE",
+        "to": "DEAD",
+        "conditions": [
+          {"state": "ALIVE", "operator": "<", "value": 2}
+        ]
+      },
+      {
+        "from": "ALIVE",
+        "to": "DEAD",
+        "conditions": [
+          {"state": "ALIVE", "operator": ">", "value": 3}
+        ]
+      }
+    ]
+  },
+  "initial_state": [
+    ["DEAD", "DEAD", "DEAD", "DEAD", "DEAD"],
+    ["DEAD", "DEAD", "ALIVE", "DEAD", "DEAD"],
+    ["DEAD", "DEAD", "ALIVE", "DEAD", "DEAD"],
+    ["DEAD", "DEAD", "ALIVE", "DEAD", "DEAD"],
+    ["DEAD", "DEAD", "DEAD", "DEAD", "DEAD"]
+  ]
+}
