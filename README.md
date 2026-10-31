@@ -92,7 +92,7 @@ git --version
 ### 2. Clonarea repository-ului
 
 ```powershell
-git clone <https://github.com/EnachescuAlexandra/Cell_Labs.git>
+git clone https://github.com/EnachescuAlexandra/Cell_Labs.git
 cd Cell_Labs
 ```
 
