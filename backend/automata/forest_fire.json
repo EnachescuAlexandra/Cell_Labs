@@ -1,0 +1,31 @@
+
+{
+  "automaton": {
+    "name": "Forest Fire",
+    "width": 3,
+    "height": 3,
+    "states": ["EMPTY", "TREE", "FIRE"],
+    "neighborhood": "moore",
+    "boundary": "fixed",
+    "default": "keep",
+    "rules": [
+      {
+        "from": "FIRE",
+        "to": "EMPTY",
+        "conditions": []
+      },
+      {
+        "from": "TREE",
+        "to": "FIRE",
+        "conditions": [
+          {"state": "FIRE", "operator": ">=", "value": 1}
+        ]
+      }
+    ]
+  },
+  "initial_state": [
+    ["TREE", "TREE", "TREE"],
+    ["TREE", "FIRE", "TREE"],
+    ["TREE", "TREE", "TREE"]
+  ]
+}

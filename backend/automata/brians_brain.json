@@ -1,0 +1,38 @@
+
+{
+  "automaton": {
+    "name": "Brian's Brain",
+    "width": 5,
+    "height": 5,
+    "states": ["OFF", "FIRING", "DYING"],
+    "neighborhood": "moore",
+    "boundary": "fixed",
+    "default": "keep",
+    "rules": [
+      {
+        "from": "FIRING",
+        "to": "DYING",
+        "conditions": []
+      },
+      {
+        "from": "DYING",
+        "to": "OFF",
+        "conditions": []
+      },
+      {
+        "from": "OFF",
+        "to": "FIRING",
+        "conditions": [
+          {"state": "FIRING", "operator": "==", "value": 2}
+        ]
+      }
+    ]
+  },
+  "initial_state": [
+    ["OFF", "OFF", "OFF", "OFF", "OFF"],
+    ["OFF", "FIRING", "OFF", "FIRING", "OFF"],
+    ["OFF", "OFF", "OFF", "OFF", "OFF"],
+    ["OFF", "OFF", "OFF", "OFF", "OFF"],
+    ["OFF", "OFF", "OFF", "OFF", "OFF"]
+  ]
+}
