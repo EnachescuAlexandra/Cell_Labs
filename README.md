@@ -92,13 +92,9 @@ git --version
 ### 2. Clonarea repository-ului
 
 ```powershell
-git clone <REPOSITORY_URL>
+git clone <https://github.com/EnachescuAlexandra/Cell_Labs.git>
 cd Cell_Labs
 ```
-
-Înlocuiți `<REPOSITORY_URL>` cu adresa repository-ului GitHub.
-
-Dacă folderul local are alt nume, adaptați comanda `cd`.
 
 ### 3. Crearea mediului virtual
 
@@ -268,32 +264,6 @@ Testele verifică:
 - Păstrarea matricei originale
 - Salvarea și recuperarea datelor
 
-## Limitările versiunii L6
 
-Această versiune realizează o singură tranziție per rulare.
 
-Nu include:
-- Interpretarea descrierilor în limbaj natural
-- Interfață grafică
-- API HTTP
-- Simularea automată a N generații
-- Experimentul Neural Network / Reinforcement Learning
-- Răspunsurile la cele cinci întrebări de analiză
 
-Aceste funcționalități aparțin etapelor ulterioare ale proiectului.
-
-## Echipa
-
-Proiect realizat de o echipă de 4 membri.
-
-Responsabilități:
-- Modelarea și validarea automatelor
-- Motorul generic de tranziții
-- Configurațiile automatelor și testarea
-- Salvarea, recuperarea și integrarea aplicației
-
-## Livrabilul 2 – L6
-
-Sistemul demonstrează citirea unei generații curente, aplicarea regulilor și generarea unei noi stări pentru mai multe automate celulare.
-
-Sunt implementate și configurarea parametrilor experimentului, salvarea și recuperarea stărilor.
