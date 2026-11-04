@@ -1,0 +1,42 @@
+# Python environments and generated files
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local secrets (keep explicitly named templates shareable)
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+secrets.local.*
+
+# Preserve shared editor settings; ignore personal state only
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+.vscode/*.local.json
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Generated saves; existing tracked examples remain tracked
+backend/saved_runs/*.json
+
+# Repository-local pytest temporary data
+backend/.test-tmp/

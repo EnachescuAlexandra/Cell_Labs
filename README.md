@@ -1,269 +1,115 @@
-# CelLab – Cellular Automata Simulator
+# CelLab - Cellular Automata Simulator
 
-## Descriere
+University Artificial Intelligence project developed by a team of four. Deliverable 2 (L6) models a world, transition rules, experiment parameters, and state storage/recovery.
 
-CelLab este un sistem pentru modelarea și simularea automatelor celulare bidimensionale.
+## Current features
 
-Proiectul folosește un motor generic care citește definițiile automatelor din fișiere JSON, validează stările și regulile și calculează generația următoare.
+- A generic deterministic, synchronous transition engine using JSON definitions.
+- Game of Life, Brian's Brain, deterministic Forest Fire, and a four-state Cyclic Cellular Automaton.
+- Strict structural validation, grid validation, impossible-condition checks, and conflicting-rule detection.
+- Explicit experiment parameters: positive generation count (default 1), optional history retention, and optional saving.
+- Console display of initial/final states and optional intermediate generations.
+- Legacy transition snapshots and versioned multi-generation experiment records.
+- Loading additional compatible JSON files through the console.
+- Crystal Growth is included as an additional JSON example, loadable through option 7.
 
-Regulile fiecărui automat sunt definite în JSON, fără implementări Python separate pentru fiecare automat.
+Multi-generation execution is a small enhancement beyond L6's minimum demonstration of one transition.
 
-Această versiune corespunde Livrabilului 2 (L6) al proiectului de Inteligență Artificială.
+## Installation on Windows (PowerShell)
 
-## Funcționalități implementate – Livrabilul 2
-
-- Reprezentarea automatelor prin matrice 2D.
-- Definirea stărilor și regulilor de tranziție în JSON.
-- Validarea structurală și semantică a configurațiilor.
-- Vecinătăți Moore și von Neumann.
-- Aplicarea sincronă a regulilor.
-- Generarea unei singure generații următoare.
-- Selectarea unui automat sau rularea tuturor.
-- Salvarea și recuperarea stărilor în fișiere JSON.
-- Testarea automată a rezultatelor.
-
-## Automate disponibile
-
-| Automat | Stări | Descriere |
-|---|---|---|
-| Game of Life | DEAD, ALIVE | Naștere, supraviețuire și moarte în funcție de vecini |
-| Brian's Brain | OFF, FIRING, DYING | Tranziții între trei stări |
-| Forest Fire | EMPTY, TREE, FIRE | Propagarea deterministă a focului |
-| Cyclic Cellular Automaton | 0, 1, 2, 3 | Tranziții ciclice bazate pe numărul vecinilor |
-
-Toate automatele folosesc același motor de simulare.
-
-## Tehnologii
-
-- Python 3.14
-- Pydantic 2
-- Pytest
-- JSON pentru definiții și persistență
-
-## Structura proiectului
-
-```text
-Cell_Labs/
-├── .gitignore
-├── README.md
-└── backend/
-    ├── main.py
-    ├── requirements.txt
-    ├── app/
-    │   ├── models/
-    │   │   ├── automaton.py
-    │   │   └── rule.py
-    │   ├── validators/
-    │   │   ├── automaton_validator.py
-    │   │   └── validation_service.py
-    │   ├── engine/
-    │   │   └── simulator.py
-    │   └── storage/
-    │       └── json_storage.py
-    ├── automata/
-    │   ├── game_of_life.json
-    │   ├── brians_brain.json
-    │   ├── forest_fire.json
-    │   └── cyclic_automaton.json
-    ├── saved_runs/
-    └── tests/
-        ├── test_models.py
-        ├── test_initial_state.py
-        ├── test_semantic_validation.py
-        ├── test_validation_service.py
-        └── test_l6.py
-```
-
-## Instalare
-
-Instrucțiunile următoare sunt pentru Windows și PowerShell.
-
-### 1. Cerințe
-
-Instalați Python 3.14 și Git.
-
-Verificați:
+From the repository root, with Python 3.14 installed:
 
 ```powershell
 py -3.14 --version
-git --version
-```
-
-### 2. Clonarea repository-ului
-
-```powershell
-git clone https://github.com/EnachescuAlexandra/Cell_Labs.git
-cd Cell_Labs
-```
-
-### 3. Crearea mediului virtual
-
-Din rădăcina proiectului:
-
-```powershell
 py -3.14 -m venv .venv
-```
-
-### 4. Instalarea dependențelor
-
-```powershell
 .\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+.\.venv\Scripts\python.exe -m pip check
 ```
 
-Verificați bibliotecile:
+If `.venv` already exists, reuse it. No global installations are needed.
 
-```powershell
-.\.venv\Scripts\python.exe -c "import pydantic, pytest; print('Dependencies OK')"
-```
-
-Rezultat așteptat:
-
-```text
-Dependencies OK
-```
-
-## Rularea aplicației
-
-Din rădăcina proiectului:
+## Run
 
 ```powershell
 cd backend
 ..\.venv\Scripts\python.exe main.py
 ```
 
-Meniul principal:
+Menu: `1` Game of Life, `2` Brian's Brain, `3` Forest Fire, `4` Cyclic Cellular Automaton, `5` Run ALL, `6` Recover, `7` Load compatible JSON, `0` Exit.
 
-```text
-========== CELLLAB - L6 ==========
-1. Game of Life
-2. Brian's Brain
-3. Forest Fire
-4. Cyclic Cellular Automaton
-5. Run ALL
-6. Recover saved simulation
-0. Exit
+Select an automaton, enter a positive generation count (Enter accepts 1), and choose whether to retain/show intermediate generations. After displaying the result, choose whether to save. Invalid generation counts and yes/no answers are retried.
 
-Select option:
+Run ALL keeps the original workflow: one generation per automaton, without parameter or save prompts. Option 7 accepts an absolute path or a path relative to `backend/automata`; no Python menu edit is needed for a new compatible definition.
+
+## JSON configuration and limits
+
+Each file contains `automaton` and `initial_state`. The existing four files remain unchanged. An optional sibling object supplies experiment defaults:
+
+```json
+"experiment": {
+  "generations": 3,
+  "retain_history": true,
+  "save_result": false
+}
 ```
 
-Introduceți numărul opțiunii și apăsați Enter.
+Insert this object alongside `automaton` and `initial_state` in a complete configuration. The CLI allows overrides; `save_result` sets the default answer to the save prompt. The runner performs no file I/O itself. JSON generation counts must be integers greater than zero; booleans, fractional values, and strings are rejected.
 
-### Rularea unui automat
+The supported rule language uses:
 
-Selectați una dintre opțiunile 1–4.
+- Rectangular grids, width/height 1-100, with one declared string state per cell.
+- Radius-one Moore (8 possible neighbors) or von Neumann (4) neighborhoods.
+- Fixed boundaries: positions outside the grid are omitted; edge cells still update.
+- Rules containing `from`, `to`, and AND-combined neighbor-count conditions.
+- Comparisons `==`, `!=`, `<`, `<=`, `>`, `>=` against constants 0-8.
+- Empty conditions for unconditional transitions; no match keeps the current state.
+- No rule priority: simultaneous matches with different destinations are invalid.
 
-Programul:
-1. Încarcă definiția și matricea inițială din JSON.
-2. Validează configurația.
-3. Aplică regulile prin motorul generic.
-4. Afișează starea curentă și următoarea stare.
-5. Permite salvarea tranziției.
+This engine is generic within that language: all four examples use identical Python transition code. Directional conditions, wrapping, probability, arithmetic updates, agent movement, and general expressions are not supported. Impossible rules are rejected even when they would simply remain unused on a small grid.
 
-### Rularea tuturor automatelor
+Every generation reads only the previous grid and builds a new grid. The original input is preserved. History includes generation 0 through generation N when enabled; otherwise only stepping grids are retained, using memory independent of N. Retained history uses memory proportional to N and grid size.
 
-Selectați opțiunea `5`.
+## Storage and recovery
 
-Programul execută consecutiv toate cele patru automate, fără modificarea codului motorului.
+Saves go to `backend/saved_runs/`. Existing tracked examples remain available; new local saves are ignored by Git.
 
-În acest mod, rezultatele sunt afișate fără solicitarea salvării.
+- One generation without history uses the existing transition format: definition, initial state, next state, ID, timestamp.
+- Multi-generation results or retained history use a separate `cellab-experiment` version 1 record containing parameters, initial/final grids, and optional history.
+- Recovery option 6 lists both formats. Select the displayed number. Retained intermediate grids can be shown on request.
+- Experiment recovery validates the configuration and all stored grids and replays the N steps to verify results. Legacy recovery preserves its original structural/semantic checks without replay verification.
 
-## Exemplu – Forest Fire
+Recovery displays stored results; it does not resume an interactive simulation. Saves are plain JSON, without transactional durability. Large generation counts can take time; history increases memory and file size, and experiment verification repeats the computation.
 
-Starea inițială:
+## Tests
 
-```text
-TREE TREE TREE
-TREE FIRE TREE
-TREE TREE TREE
-```
-
-După o tranziție:
-
-```text
-FIRE FIRE FIRE
-FIRE EMPTY FIRE
-FIRE FIRE FIRE
-```
-
-Celula FIRE devine EMPTY, iar celulele TREE cu minimum un vecin FIRE devin FIRE.
-
-Tranzițiile sunt sincrone: toate celulele sunt calculate folosind aceeași matrice curentă.
-
-## Formatul configurațiilor
-
-Fiecare automat este definit printr-un fișier JSON care conține:
-
-- `automaton.name`: numele automatului
-- `width`, `height`: dimensiunile matricei
-- `states`: stările posibile
-- `neighborhood`: tipul vecinătății
-- `boundary`: politica marginilor
-- `default`: comportamentul implicit
-- `rules`: regulile de tranziție
-- `initial_state`: matricea inițială
-
-Fiecare regulă definește starea sursă (`from`), starea destinație (`to`) și condițiile pentru aplicare (`conditions`).
-
-Toate condițiile unei reguli trebuie să fie adevărate.
-
-O listă goală de condiții reprezintă o tranziție necondiționată.
-
-Dacă nicio regulă nu se aplică, celula își păstrează starea curentă.
-
-Pentru această versiune sunt suportate automate deterministe, sincrone, cu stări discrete și vecinătăți locale.
-
-## Salvare și recuperare
-
-După rularea individuală a unui automat, programul întreabă:
-
-```text
-Save transition? (y/n):
-```
-
-Introduceți `y` pentru salvare.
-
-Se creează un fișier JSON în `backend/saved_runs/`.
-
-Fișierul conține:
-- ID-ul salvării
-- Data și ora
-- Definiția automatului
-- Starea inițială
-- Starea rezultată
-
-Pentru recuperare, selectați opțiunea `6` din meniul principal.
-
-Programul afișează fișierele salvate. Introduceți numărul corespunzător simulării dorite.
-
-Stările sunt încărcate din fișier, fără recalcularea tranziției.
-
-## Rularea testelor
-
-Din directorul `backend`:
+From the repository root:
 
 ```powershell
-..\.venv\Scripts\python.exe -m pytest -v
+.\.venv\Scripts\python.exe -B -m pytest -p no:cacheprovider --basetemp=backend/.test-tmp -q
 ```
 
-Pentru testele specifice Livrabilului 2:
+Or from `backend`:
 
 ```powershell
-..\.venv\Scripts\python.exe -m pytest tests/test_l6.py -v
+..\.venv\Scripts\python.exe -B -m pytest -p no:cacheprovider --basetemp=.test-tmp -q
 ```
 
-Rezultatul așteptat pentru versiunea cu patru automate este:
+The root `pytest.ini` sets `pythonpath = backend` and `testpaths = backend/tests`, so both commands discover the same suite without changing application imports. The temporary directory stays inside the repository and is ignored. Pytest reuses/clears this dedicated test directory; do not store personal files there. Tests cover legacy and experiment save/recovery, all four original next-state examples, and Crystal Growth expansion and stability. The test count can vary with local saved records, which are also checked for compatibility.
 
-```text
-9 passed
-```
+## Quick demonstration
 
-Testele verifică:
-- Validarea configurațiilor
-- Generarea corectă a stării următoare
-- Funcționarea celor patru automate
-- Păstrarea matricei originale
-- Salvarea și recuperarea datelor
+1. Select `1`, accept one generation, answer `n` for history: the vertical Life blinker becomes horizontal.
+2. Save with `y`; select `6` and recover the file with the printed ID.
+3. Select `2` for Brian's Brain to demonstrate three states.
+4. Select `1`, enter `2`, choose history: the Life blinker returns to its initial grid.
+5. Select `5` to show all four examples in one pass.
 
+See [the 2-3 minute demonstration guide](docs/L6_DEMO.md).
 
+## Structure and future work
 
+`backend/app/models` defines schemas; `validators` checks configurations; `engine/simulator.py` computes a single step; `engine/runner.py` repeats it; `storage` handles snapshots/experiments; `backend/main.py` provides the CLI. Definitions are in `backend/automata`, tests in `backend/tests`.
 
+L11 dataset/NN/RL work and L13 natural-language parsing are future deliverables. A GUI, automatic question answering, cycle detection, and arbitrary cellular automata are not implemented. There are no runtime assistant calls.
+
+AI documentation is indexed in [docs/AI_Interactions.md](docs/AI_Interactions.md). The earlier document is a reconstructed summary, not a complete original conversation archive. Team members must import available original exports as explained in [docs/ai-interactions/README.md](docs/ai-interactions/README.md).
