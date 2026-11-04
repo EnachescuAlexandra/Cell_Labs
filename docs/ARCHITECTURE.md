@@ -17,7 +17,7 @@ Paths below are relative to `backend/`.
 | `app/storage/experiment_storage.py` | Separate version 1 experiment records, optional history, grid validation, and replay verification on save/load. |
 | `automata/`, `saved_runs/` | Definitions with initial grids; persisted records and tracked saved examples. |
 
-`app/api`, `app/database`, and `app/services` currently contain empty package markers. They provide no API, database, or service functionality.
+`app/api/main.py` is the FastAPI adapter. `app/database` and `app/services` remain empty markers. `frontend/` provides the React + TypeScript + Vite dashboard, HTTP client, and responsive light-mode CSS.
 
 ## Data flow
 
@@ -43,7 +43,7 @@ One step without history uses the original snapshot fields. Other runs use `cell
 
 ## Dependencies
 
-`requirements.txt` declares Pydantic 2, pytest 9, FastAPI with standard extras, NumPy, and HTTPX. Current application runtime uses Pydantic and Python's standard library. Tests use pytest and standard-library mocking. FastAPI, NumPy, and HTTPX are installed but unused by the current application; their presence does not mean an API or learning experiment exists. No dependency changes are proposed for L6.
+`requirements.txt` declares Pydantic 2, pytest 9, FastAPI with standard extras, NumPy, and HTTPX. The API uses FastAPI and Pydantic; API tests use HTTPX through TestClient. NumPy remains unused. Python requirements are unchanged. React and React DOM are frontend runtime dependencies; Vite, TypeScript, Vitest, jsdom, and Testing Library supply development tooling. package-lock.json fixes resolved versions.
 
 ## Rule language and limits
 
@@ -69,8 +69,21 @@ Create a JSON object with `automaton` and `initial_state`, following an existing
 
 Run from `backend` with `..\.venv\Scripts\python.exe -B -m pytest -p no:cacheprovider --basetemp=.test-tmp -q`.
 
-## Future React + TypeScript and FastAPI integration (not implemented)
+## Implemented web architecture
 
-React + TypeScript would own the grid visualization/editor, parameter forms, navigation, and result presentation. FastAPI would own request validation, simulation invocation, persistence access, and consistent error responses. It should call the existing validation service and runner directly, without console input or display functions. The synchronous transition algorithm remains shared and authoritative in Python.
+React owns visualization, parameter forms, navigation, and result presentation. FastAPI owns request validation, simulation invocation, persistence access, and structured error responses. The API calls the existing validation service, runner, and storage, independently of CLI input/display. Python remains the only transition implementation. There is no grid editor.
 
-Before exposing long runs, define request/response schemas, computation/history limits, and safe execution outside the asynchronous request loop when necessary. File paths must stay server-controlled rather than accepting the CLI's arbitrary local paths. See [ROADMAP.md](ROADMAP.md) for deferred integration work.
+```mermaid
+flowchart LR
+    UI[React dashboard] -->|JSON HTTP via Vite proxy| API[FastAPI adapter]
+    API --> V[Existing validation service]
+    V --> R[Existing experiment runner]
+    R --> E[Existing synchronous engine]
+    API --> S[Existing JSON storage]
+```
+
+Synchronous API routes execute in FastAPI's worker thread pool. Models reuse AutomatonDefinition and ExperimentConfig. Built-in paths are allowlisted. Uploaded JSON is data rather than a path. Save identifiers are simple names restricted to the existing save directory; symbolic-link records are rejected. Save results are replay-checked before writing. Legacy recovery preserves structural-validation semantics; experiment recovery also verifies transitions.
+
+React holds the original configuration, a sparse map of actual generation grids, the viewed index, and final index. Without returned history only known endpoints are kept. Previous jumps over unavailable generations, which are never fabricated. A synchronous request lock prevents overlapping operations. Reset increments a request token to reject late results. Loading and recovering stop playback; playback schedules one timeout after the preceding request completes. Saving uses the original initial grid and final index, with history only when enabled and complete; partial history becomes null.
+
+Local Vite proxies /api to FastAPI. No deployment, authentication, background job queue, or server-computation cancellation is provided. Positive generation counts have no upper cap, matching the runner; large runs/history can consume substantial time and memory. Storage remains nontransactional JSON. Endpoint and verification details: [WEB_INTERFACE.md](WEB_INTERFACE.md).

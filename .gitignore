@@ -40,3 +40,10 @@ backend/saved_runs/*.json
 
 # Repository-local pytest temporary data
 backend/.test-tmp/
+
+# Frontend dependencies, builds, and local tooling
+node_modules/
+.npm-cache/
+.vite/
+*.tsbuildinfo
+frontend/coverage/
