@@ -3,7 +3,8 @@ import json
 from pathlib import Path
 
 from app.models.automaton import AutomatonDefinition
-from app.engine.simulator import next_generation
+from app.engine.runner import ExperimentConfig, run_simulation
+from app.storage.experiment_storage import save_experiment, load_experiment
 from app.storage.json_storage import (
     save_transition,
     load_transition,
@@ -31,55 +32,77 @@ def display_grid(grid: list[list[str]]) -> None:
         print(" ".join(row))
 
 
-def run_automaton(
-    filename: str,
-    ask_to_save: bool = True
-) -> None:
-    """Loads, validates and executes one transition."""
+def ask_yes_no(prompt: str, default: bool = False) -> bool:
+    while True:
+        answer = input(prompt).strip().lower()
+        if not answer:
+            return default
+        if answer in ("y", "n"):
+            return answer == "y"
+        print("Please enter y or n.")
 
-    path = AUTOMATA_DIR / filename
 
-    with path.open("r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    validation = validate_configuration(
-        data["automaton"],
-        data["initial_state"]
-    )
-
-    if not validation["valid"]:
-        print("\nINVALID CONFIGURATION:")
-        for error in validation["errors"]:
-            print(f"  {error['field']}: {error['message']}")
-        return
-
-    definition = AutomatonDefinition.model_validate(
-        data["automaton"]
-    )
-
-    current_grid = data["initial_state"]
-    next_grid = next_generation(current_grid, definition)
-
-    print(f"\n========== {definition.name} ==========")
-
-    print("\nCurrent generation:")
-    display_grid(current_grid)
-
-    print("\nNext generation:")
-    display_grid(next_grid)
-
-    print("\nTransition completed successfully.")
-
-    if ask_to_save:
-        answer = input("\nSave transition? (y/n): ").strip().lower()
-
-        if answer == "y":
-            saved_path = save_transition(
-                definition,
-                current_grid,
-                next_grid
-            )
-            print(f"Saved to: {saved_path.name}")
+def run_automaton(filename: str, ask_to_save: bool = True) -> None:
+    """Run a selected configuration; Run ALL remains a one-step demo."""
+    try:
+        path = AUTOMATA_DIR / filename
+        with path.open(encoding="utf-8") as file:
+            data = json.load(file)
+        if not isinstance(data, dict):
+            raise ValueError("Configuration must be a JSON object.")
+        validation = validate_configuration(data["automaton"], data["initial_state"])
+        if not validation["valid"]:
+            print("INVALID CONFIGURATION:")
+            for error in validation["errors"]:
+                print(f"  {error['field']}: {error['message']}")
+            return
+        definition = AutomatonDefinition.model_validate(data["automaton"])
+        config = ExperimentConfig.model_validate(data.get("experiment", {}))
+        print(f"\n========== {definition.name} ==========")
+        if ask_to_save:
+            while True:
+                answer = input(f"Generations [{config.generations}]: ").strip()
+                try:
+                    generations = int(answer) if answer else config.generations
+                    config = ExperimentConfig(generations=generations,
+                                              retain_history=config.retain_history,
+                                              save_result=config.save_result)
+                    break
+                except ValueError:
+                    print("Generation count must be a positive integer.")
+            retain = ask_yes_no("Retain/show intermediate generations? (y/n) "
+                                f"[{'y' if config.retain_history else 'n'}]: ",
+                                config.retain_history)
+            config = ExperimentConfig(generations=config.generations,
+                                      retain_history=retain,
+                                      save_result=config.save_result)
+        else:
+            config = ExperimentConfig()
+        grid = data["initial_state"]
+        result = run_simulation(grid, definition, config)
+        print("\nInitial grid (generation 0):")
+        display_grid(grid)
+        if result["history"] is not None:
+            for index, generation in enumerate(result["history"][1:-1], start=1):
+                print(f"\nGeneration {index}:")
+                display_grid(generation)
+        print(f"\nFinal grid (generation {config.generations}):")
+        display_grid(result["final_state"])
+        print("\nTransition completed successfully.")
+        if ask_to_save and ask_yes_no(
+            f"Save result? (y/n) [{'y' if config.save_result else 'n'}]: ",
+            config.save_result
+        ):
+            config = ExperimentConfig(generations=config.generations,
+                                      retain_history=config.retain_history,
+                                      save_result=True)
+            if config.generations == 1 and not config.retain_history:
+                saved = save_transition(definition, grid, result["final_state"])
+            else:
+                saved = save_experiment(definition, grid, config, result)
+            print(f"Saved to: {saved.name}")
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print(f"Could not run simulation: {error}")
 
 
 def recover_simulation() -> None:
@@ -111,7 +134,13 @@ def recover_simulation() -> None:
         return
 
     try:
-        data = load_transition(files[selection - 1])
+        selected = files[selection - 1]
+        with selected.open(encoding="utf-8") as file:
+            header = json.load(file)
+        if isinstance(header, dict) and "format" in header:
+            data = load_experiment(selected)
+        else:
+            data = load_transition(selected)
     except (OSError, ValueError, KeyError, TypeError) as error:
         print(f"Could not recover simulation: {error}")
         return
@@ -121,8 +150,17 @@ def recover_simulation() -> None:
     print("\nCurrent generation:")
     display_grid(data["initial_state"])
 
-    print("\nNext generation:")
-    display_grid(data["next_state"])
+    if data.get("format") == "cellab-experiment":
+        history = data.get("history")
+        if history and ask_yes_no("Show intermediate generations? (y/n) [n]: "):
+            for index, grid in enumerate(history[1:-1], start=1):
+                print(f"\nGeneration {index}:")
+                display_grid(grid)
+        print(f"\nFinal generation {data['experiment']['generations']}:")
+        display_grid(data["final_state"])
+    else:
+        print("\nNext generation:")
+        display_grid(data["next_state"])
 
 
 def main() -> None:
@@ -136,6 +174,7 @@ def main() -> None:
         print("4. Cyclic Cellular Automaton")
         print("5. Run ALL")
         print("6. Recover saved simulation")
+        print("7. Load compatible JSON file")
         print("0. Exit")
 
         choice = input("\nSelect option: ").strip()
@@ -152,6 +191,13 @@ def main() -> None:
 
         elif choice == "6":
             recover_simulation()
+
+        elif choice == "7":
+            filename = input("JSON path (relative to backend/automata or absolute): ").strip()
+            if filename:
+                run_automaton(filename)
+            else:
+                print("Please enter a JSON path.")
 
         elif choice == "0":
             print("\nExiting CelLab.")

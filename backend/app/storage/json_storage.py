@@ -51,6 +51,9 @@ def load_transition(file_path: Path) -> dict:
     with file_path.open("r", encoding="utf-8") as file:
         data = json.load(file)
 
+    if not isinstance(data, dict):
+        raise ValueError("Saved record must be a JSON object.")
+
     definition = AutomatonDefinition.model_validate(
         data["automaton"]
     )
