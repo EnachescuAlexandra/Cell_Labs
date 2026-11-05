@@ -28,7 +28,35 @@ py -3.14 -m venv .venv
 
 If `.venv` already exists, reuse it. No global installations are needed.
 
-## Run
+## Optional web interface
+
+The React + TypeScript dashboard supports all five automata, real-history navigation, playback, custom JSON, save/recovery, and the original-four Run All. Install the Python requirements above, then start FastAPI from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.api.main:app --app-dir backend --host 127.0.0.1 --port 8000
+```
+
+In a second PowerShell terminal, install frontend dependencies and start Vite (Node.js 22.12+ or 24):
+
+```powershell
+cd frontend
+npm.cmd ci --cache .npm-cache
+npm.cmd run dev
+```
+
+Open `http://127.0.0.1:5173`. Vite proxies `/api` to port 8000. Interactive API docs: `http://127.0.0.1:8000/docs`. CORS allows only localhost/127.0.0.1 port 5173. `npm.cmd` avoids PowerShell's script execution-policy restriction.
+
+Frontend checks and production build, from `frontend`:
+
+```powershell
+npm.cmd run typecheck
+npm.cmd test
+npm.cmd run build
+```
+
+Build output is `frontend/dist`. Production hosting must serve these files and proxy `/api` to FastAPI; hosting and authentication are outside this local interface. See [web handoff](docs/WEB_INTERFACE.md) for endpoints, verification, parity, limitations, and a two-minute demo.
+
+## Run the original CLI
 
 ```powershell
 cd backend
@@ -110,6 +138,6 @@ See [the 2-3 minute demonstration guide](docs/L6_DEMO.md).
 
 `backend/app/models` defines schemas; `validators` checks configurations; `engine/simulator.py` computes a single step; `engine/runner.py` repeats it; `storage` handles snapshots/experiments; `backend/main.py` provides the CLI. Definitions are in `backend/automata`, tests in `backend/tests`.
 
-L11 dataset/NN/RL work and L13 natural-language parsing are future deliverables. A GUI, automatic question answering, cycle detection, and arbitrary cellular automata are not implemented. There are no runtime assistant calls.
+L11 dataset/NN/RL work and L13 natural-language parsing are future deliverables. Automatic question answering, cycle detection, and arbitrary cellular automata are not implemented. An optional React interface now uses the same Python engine and storage as the CLI. There are no runtime assistant calls.
 
 AI documentation is indexed in [docs/AI_Interactions.md](docs/AI_Interactions.md). The earlier document is a reconstructed summary, not a complete original conversation archive. Team members must import available original exports as explained in [docs/ai-interactions/README.md](docs/ai-interactions/README.md).

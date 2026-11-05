@@ -28,3 +28,16 @@ Recovery numbers depend on existing saves; choose by the filename printed when s
 ## Optional Crystal Growth example
 
 Select `7`, enter `crystal_growth.json`, enter `3` generations, and choose `y` for history. Generation 1 is the central 3x3 crystal block. Generation 2 fills the whole 5x5 grid (16 additions, including the four corners); generation 3 is unchanged. The existing rule is EMPTY -> CRYSTAL with at least one CRYSTAL Moore neighbor, so generation 2 adds more than just the four corners. Choose `n` to skip saving, or `y` to recover the history later through option 6. This demonstrates another compatible JSON file without changing the engine or the four-option registry.
+
+
+## Optional web interface demonstration (two minutes)
+
+The CLI remains independently available; the web interface is an optional L6 presentation layer over the same engine. Start FastAPI and Vite using the root README.
+
+1. (0:00-0:25) Select Game of Life, enable history, and click Next Generation. Show the changed blinker and state counts; Previous returns to the actual initial grid.
+2. (0:25-0:50) Play, Pause, then Reset. Run two generations with history and navigate the stored frames.
+3. (0:50-1:15) Save, Browse saved, select the new identifier, and Recover. Show initial/final generation indices. Disable history for another batch and explain the missing intermediate frames.
+4. (1:15-1:40) Select Crystal Growth and run two steps to fill the grid. Load backend/automata/brians_brain.json through the JSON picker; an invalid-state file produces validation feedback.
+5. (1:40-2:00) Run All to compare one-step results for the original four systems. Inspect a result. Pause or Reset to leave the workspace safely.
+
+See WEB_INTERFACE.md for actual automated verification and remaining manual browser checks; this scenario is a presentation guide, not a claim that a human performed it.
